@@ -2,6 +2,7 @@ const express = require('express');
 const morgan = require('morgan');
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
+const notesRouter = require('./routes/notesRoutes');
 
 dotenv.config({
   path: './config.env',
@@ -28,6 +29,8 @@ async function main() {
 }
 
 main();
+
+app.use('/api/v1/notes', notesRouter);
 
 const port = process.env.PORT || 8000;
 app.listen(port, () => {

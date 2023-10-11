@@ -1,10 +1,15 @@
 const Note = require('../models/noteModel');
 
 const getAllNotes = async (req, res) => {
+  const { sort = '-createdAt,_id', limit = 8, page = 1 } = req.query;
+  const sortBy = sort.split(',').join(' ');
+  const skip = (page - 1) * limit;
+
   try {
-    const notes = await Note.find();
+    const notes = await Note.find().sort(sortBy).limit(limit).skip(skip);
     res.status(200).json({
       status: 'success',
+      resultCount: notes.length,
       data: {
         notes,
       },

@@ -1,4 +1,5 @@
 const express = require('express');
+const cors = require('cors');
 const morgan = require('morgan');
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
@@ -8,7 +9,12 @@ dotenv.config({
   path: './config.env',
 });
 
+const corsOptions = {
+  origin: 'http://localhost:3000',
+};
+
 const app = express();
+app.use(cors(corsOptions));
 if (process.env.NODE_ENV === 'development') {
   app.use(morgan('dev'));
 }

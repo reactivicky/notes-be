@@ -77,6 +77,27 @@ const getNote = async (req, res) => {
   }
 };
 
+const updateNote = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const note = await Note.findByIdAndUpdate(id, req.body, {
+      new: true,
+      runValidators: true,
+    });
+    res.status(200).json({
+      status: 'success',
+      data: {
+        note,
+      },
+    });
+  } catch (exports) {
+    res.status(404).json({
+      status: 'failed',
+      message: `No note with id ${id}`,
+    });
+  }
+};
+
 const deleteNote = async (req, res) => {
   const { id } = req.params;
   try {
@@ -98,4 +119,5 @@ module.exports = {
   createNote,
   getNote,
   deleteNote,
+  updateNote,
 };

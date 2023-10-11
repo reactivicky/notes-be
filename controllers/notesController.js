@@ -38,7 +38,26 @@ const createNote = async (req, res) => {
   }
 };
 
+const getNote = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const note = await Note.findById(id);
+    res.status(200).json({
+      status: 'success',
+      data: {
+        note,
+      },
+    });
+  } catch (exports) {
+    res.status(404).json({
+      status: 'failed',
+      message: `No note with id ${id}`,
+    });
+  }
+};
+
 module.exports = {
   getAllNotes,
   createNote,
+  getNote,
 };

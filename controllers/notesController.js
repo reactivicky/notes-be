@@ -77,8 +77,25 @@ const getNote = async (req, res) => {
   }
 };
 
+const deleteNote = async (req, res) => {
+  const { id } = req.params;
+  try {
+    await Note.findByIdAndDelete(id);
+    res.status(204).json({
+      status: 'success',
+      data: null,
+    });
+  } catch (exports) {
+    res.status(404).json({
+      status: 'failed',
+      message: `No note with id ${id}`,
+    });
+  }
+};
+
 module.exports = {
   getAllNotes,
   createNote,
   getNote,
+  deleteNote,
 };

@@ -2,6 +2,7 @@ const Note = require('../models/noteModel');
 
 const getAllNotes = async (req, res) => {
   const {
+    text = '',
     sort = '-createdAt,_id',
     limit = 8,
     page = 1,
@@ -12,7 +13,12 @@ const getAllNotes = async (req, res) => {
   const skip = (page - 1) * limit;
 
   try {
-    const notes = await Note.find()
+    const notes = await Note.find({
+      $or: [
+        { name: { $in: [new RegExp(text, 'i')] } },
+        { description: { $in: [new RegExp(text, 'i')] } },
+      ],
+    })
       .select(fields)
       .sort(sortBy)
       .limit(limit)

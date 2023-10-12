@@ -26,6 +26,7 @@ const getAllNotes = async (req, res) => {
     res.status(200).json({
       status: 'success',
       resultCount: notes.length,
+      end: notes.length < limit,
       data: {
         notes,
       },

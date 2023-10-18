@@ -84,6 +84,40 @@ const loginUser = async (req, res) => {
   }
 };
 
+const authenticateToken = async (req, res, next) => {
+  const authHeader = req.headers.authorization;
+  const token = authHeader && authHeader.split(' ')[1];
+  if (!token) {
+    return res.status(401).json({
+      status: 'failed',
+      message: 'Unauthorized',
+    });
+  }
+  jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, async (err, data) => {
+    if (err) {
+      return res.status(403).json({
+        status: 'failed',
+        message: 'Unauthorized',
+      });
+    }
+    try {
+      const user = await User.findOne({ _id: data.id });
+      if (!user) {
+        return res.status(403).json({
+          status: 'failed',
+          message: 'Unauthorized',
+        });
+      }
+    } catch (e) {
+      return res.status(403).json({
+        status: 'failed',
+        message: 'Unauthorized',
+      });
+    }
+  });
+  next();
+};
+
 const getUser = async (req, res) => {
   const { id } = req.params;
   try {
@@ -146,4 +180,5 @@ module.exports = {
   deleteUser,
   updateUser,
   loginUser,
+  authenticateToken,
 };

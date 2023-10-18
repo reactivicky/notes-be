@@ -1,4 +1,5 @@
 const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
 const User = require('../models/userModel');
 
 const getAllUsers = async (req, res) => {
@@ -58,8 +59,16 @@ const loginUser = async (req, res) => {
     }
 
     if (await bcrypt.compare(password, user.password)) {
+      const accessToken = jwt.sign(
+        { id: user._id },
+        process.env.ACCESS_TOKEN_SECRET,
+        {
+          expiresIn: process.env.JWT_EXPIRES_IN,
+        },
+      );
       res.status(200).json({
         status: 'success',
+        accessToken,
       });
     } else {
       res.status(400).json({

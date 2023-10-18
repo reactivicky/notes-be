@@ -11,28 +11,21 @@ const authenticateToken = async (req, res, next) => {
       message: 'Unauthorized',
     });
   }
-  jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, async (err, data) => {
-    if (err) {
+  try {
+    const { id } = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
+    const user = await User.findOne({ _id: id });
+    if (!user) {
       return res.status(403).json({
         status: 'failed',
         message: 'Unauthorized',
       });
     }
-    try {
-      const user = await User.findOne({ _id: data.id });
-      if (!user) {
-        return res.status(403).json({
-          status: 'failed',
-          message: 'Unauthorized',
-        });
-      }
-    } catch (e) {
-      return res.status(403).json({
-        status: 'failed',
-        message: 'Unauthorized',
-      });
-    }
-  });
+  } catch (e) {
+    return res.status(403).json({
+      status: 'failed',
+      message: 'Unauthorized',
+    });
+  }
   next();
 };
 

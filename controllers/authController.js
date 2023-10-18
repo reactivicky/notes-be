@@ -4,7 +4,7 @@ const User = require('../models/userModel');
 
 const generateAccessToken = (id) =>
   jwt.sign({ id }, process.env.ACCESS_TOKEN_SECRET, {
-    expiresIn: '15s',
+    expiresIn: '10m',
   });
 
 const generateNewAccessToken = async (req, res) => {
@@ -77,6 +77,9 @@ const createUser = async (req, res) => {
     const refreshToken = jwt.sign(
       { id: newUser._id },
       process.env.REFRESH_TOKEN_SECRET,
+      {
+        expiresIn: '1d',
+      },
     );
     const user = await User.findByIdAndUpdate(
       newUser._id,
@@ -88,6 +91,10 @@ const createUser = async (req, res) => {
         runValidators: true,
       },
     );
+    res.cookie('jwt', refreshToken, {
+      httpOnly: true,
+      maxAge: 24 * 60 * 60 * 1000,
+    });
     res.status(201).json({
       status: 'success',
       data: {
@@ -119,11 +126,17 @@ const loginUser = async (req, res) => {
       const refreshToken = jwt.sign(
         { id: user._id },
         process.env.REFRESH_TOKEN_SECRET,
+        {
+          expiresIn: '1d',
+        },
       );
+      res.cookie('jwt', refreshToken, {
+        httpOnly: true,
+        maxAge: 24 * 60 * 60 * 1000,
+      });
       res.status(200).json({
         status: 'success',
         accessToken,
-        refreshToken,
       });
     } else {
       res.status(400).json({

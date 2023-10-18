@@ -26,8 +26,7 @@ const getAllUsers = async (req, res) => {
 const createUser = async (req, res) => {
   try {
     const { username, password } = req.body;
-    const salt = await bcrypt.genSalt();
-    const hashedPassword = await bcrypt.hash(password, salt);
+    const hashedPassword = await bcrypt.hash(password, 10);
 
     const newUser = await User.create({
       username,
@@ -39,6 +38,35 @@ const createUser = async (req, res) => {
         user: newUser,
       },
     });
+  } catch (e) {
+    res.status(400).json({
+      status: 'failed',
+      message: e.message,
+    });
+  }
+};
+
+const loginUser = async (req, res) => {
+  try {
+    const { username, password } = req.body;
+    const user = await User.findOne({ username }).select('+password');
+    if (!user) {
+      return res.status(400).json({
+        status: 'failed',
+        message: `No user with username ${username}`,
+      });
+    }
+
+    if (await bcrypt.compare(password, user.password)) {
+      res.status(200).json({
+        status: 'success',
+      });
+    } else {
+      res.status(400).json({
+        status: 'failed',
+        message: 'Something went wrong',
+      });
+    }
   } catch (e) {
     res.status(400).json({
       status: 'failed',
@@ -108,4 +136,5 @@ module.exports = {
   getUser,
   deleteUser,
   updateUser,
+  loginUser,
 };

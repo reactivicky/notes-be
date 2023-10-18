@@ -2,6 +2,41 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const User = require('../models/userModel');
 
+const generateAccessToken = (id) =>
+  jwt.sign({ id }, process.env.ACCESS_TOKEN_SECRET, {
+    expiresIn: '15s',
+  });
+
+const generateNewAccessToken = async (req, res) => {
+  const { refreshToken } = req.body;
+  if (!refreshToken) {
+    return res.status(401).json({
+      status: 'failed',
+      message: 'Unauthorized',
+    });
+  }
+  const user = await User.find({ refreshToken });
+  if (!user) {
+    return res.status(403).json({
+      status: 'failed',
+      message: 'Unauthorized',
+    });
+  }
+  try {
+    const { id } = jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET);
+    const accessToken = generateAccessToken(id);
+    res.status(200).json({
+      status: 'success',
+      accessToken,
+    });
+  } catch (e) {
+    return res.status(403).json({
+      status: 'failed',
+      message: 'Unauthorized',
+    });
+  }
+};
+
 const authenticateToken = async (req, res, next) => {
   const authHeader = req.headers.authorization;
   const token = authHeader && authHeader.split(' ')[1];
@@ -38,10 +73,26 @@ const createUser = async (req, res) => {
       username,
       password: hashedPassword,
     });
+    const accessToken = generateAccessToken(newUser._id);
+    const refreshToken = jwt.sign(
+      { id: newUser._id },
+      process.env.REFRESH_TOKEN_SECRET,
+    );
+    const user = await User.findByIdAndUpdate(
+      newUser._id,
+      {
+        refreshToken,
+      },
+      {
+        new: true,
+        runValidators: true,
+      },
+    );
     res.status(201).json({
       status: 'success',
       data: {
-        user: newUser,
+        user,
+        accessToken,
       },
     });
   } catch (e) {
@@ -64,16 +115,15 @@ const loginUser = async (req, res) => {
     }
 
     if (await bcrypt.compare(password, user.password)) {
-      const accessToken = jwt.sign(
+      const accessToken = generateAccessToken(user._id);
+      const refreshToken = jwt.sign(
         { id: user._id },
-        process.env.ACCESS_TOKEN_SECRET,
-        {
-          expiresIn: '15m',
-        },
+        process.env.REFRESH_TOKEN_SECRET,
       );
       res.status(200).json({
         status: 'success',
         accessToken,
+        refreshToken,
       });
     } else {
       res.status(400).json({
@@ -93,4 +143,5 @@ module.exports = {
   loginUser,
   authenticateToken,
   createUser,
+  generateNewAccessToken,
 };

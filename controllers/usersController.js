@@ -2,20 +2,12 @@ const bcrypt = require('bcrypt');
 const User = require('../models/userModel');
 
 const getAllUsers = async (req, res) => {
-  const {
-    text = '',
-    sort = '-createdAt,_id',
-    limit = 8,
-    select = '',
-  } = req.query;
+  const { sort = '-createdAt,_id', limit = 8, select = '' } = req.query;
   const fields = select.split(',').join(' ');
   const sortBy = sort.split(',').join(' ');
 
   try {
-    const users = await User.find({ username: text })
-      .select(fields)
-      .sort(sortBy)
-      .limit(limit);
+    const users = await User.find().select(fields).sort(sortBy).limit(limit);
     res.status(200).json({
       status: 'success',
       resultCount: users.length,

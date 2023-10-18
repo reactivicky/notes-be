@@ -4,6 +4,7 @@ const morgan = require('morgan');
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
 const notesRouter = require('./routes/notesRoutes');
+const usersRouter = require('./routes/usersRoutes');
 
 dotenv.config({
   path: './config.env',
@@ -37,6 +38,7 @@ async function main() {
 main();
 
 app.use('/api/v1/notes', notesRouter);
+app.use('/api/v1/users', usersRouter);
 
 const port = process.env.PORT || 8000;
 app.listen(port, () => {

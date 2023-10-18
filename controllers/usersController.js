@@ -1,56 +1,50 @@
-const Note = require('../models/noteModel');
+const bcrypt = require('bcrypt');
+const User = require('../models/userModel');
 
-const getAllNotes = async (req, res) => {
+const getAllUsers = async (req, res) => {
   const {
     text = '',
     sort = '-createdAt,_id',
     limit = 8,
-    page = 1,
     select = '',
   } = req.query;
   const fields = select.split(',').join(' ');
   const sortBy = sort.split(',').join(' ');
-  const skip = (page - 1) * limit;
 
   try {
-    const notes = await Note.find({
-      $or: [
-        { name: { $in: [new RegExp(text, 'i')] } },
-        { description: { $in: [new RegExp(text, 'i')] } },
-      ],
-    })
+    const users = await User.find({ username: text })
       .select(fields)
       .sort(sortBy)
-      .limit(limit)
-      .skip(skip);
+      .limit(limit);
     res.status(200).json({
       status: 'success',
-      resultCount: notes.length,
-      end: notes.length < limit,
+      resultCount: users.length,
       data: {
-        notes,
+        users,
       },
     });
   } catch (e) {
     res.status(404).json({
       status: 'failed',
-      message: 'No notes found',
+      message: 'No users found',
     });
   }
 };
 
-const createNote = async (req, res) => {
+const createUser = async (req, res) => {
   try {
-    const { name, description, authorId } = req.body;
-    const newNote = await Note.create({
-      name,
-      description,
-      author: authorId,
+    const { username, password } = req.body;
+    const salt = await bcrypt.genSalt();
+    const hashedPassword = await bcrypt.hash(password, salt);
+
+    const newUser = await User.create({
+      username,
+      password: hashedPassword,
     });
     res.status(201).json({
       status: 'success',
       data: {
-        note: newNote,
+        user: newUser,
       },
     });
   } catch (e) {
@@ -61,49 +55,49 @@ const createNote = async (req, res) => {
   }
 };
 
-const getNote = async (req, res) => {
+const getUser = async (req, res) => {
   const { id } = req.params;
   try {
-    const note = await Note.findById(id);
+    const user = await User.findById(id);
     res.status(200).json({
       status: 'success',
       data: {
-        note,
+        user,
       },
     });
   } catch (exports) {
     res.status(404).json({
       status: 'failed',
-      message: `No note with id ${id}`,
+      message: `No user with id ${id}`,
     });
   }
 };
 
-const updateNote = async (req, res) => {
+const updateUser = async (req, res) => {
   const { id } = req.params;
   try {
-    const note = await Note.findByIdAndUpdate(id, req.body, {
+    const user = await User.findByIdAndUpdate(id, req.body, {
       new: true,
       runValidators: true,
     });
     res.status(200).json({
       status: 'success',
       data: {
-        note,
+        user,
       },
     });
   } catch (exports) {
     res.status(404).json({
       status: 'failed',
-      message: `No note with id ${id}`,
+      message: `No user with id ${id}`,
     });
   }
 };
 
-const deleteNote = async (req, res) => {
+const deleteUser = async (req, res) => {
   const { id } = req.params;
   try {
-    await Note.findByIdAndDelete(id);
+    await User.findByIdAndDelete(id);
     res.status(204).json({
       status: 'success',
       data: null,
@@ -111,15 +105,15 @@ const deleteNote = async (req, res) => {
   } catch (exports) {
     res.status(404).json({
       status: 'failed',
-      message: `No note with id ${id}`,
+      message: `No user with id ${id}`,
     });
   }
 };
 
 module.exports = {
-  getAllNotes,
-  createNote,
-  getNote,
-  deleteNote,
-  updateNote,
+  getAllUsers,
+  createUser,
+  getUser,
+  deleteUser,
+  updateUser,
 };

@@ -3,6 +3,7 @@ const cors = require('cors');
 const morgan = require('morgan');
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
+const cookieParser = require('cookie-parser');
 const notesRouter = require('./routes/notesRoutes');
 const usersRouter = require('./routes/usersRoutes');
 
@@ -20,6 +21,7 @@ if (process.env.NODE_ENV === 'development') {
   app.use(morgan('dev'));
 }
 app.use(express.json());
+app.use(cookieParser());
 
 const DB = process.env.DATABASE.replace(
   '<password>',

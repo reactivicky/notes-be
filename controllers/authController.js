@@ -8,7 +8,8 @@ const generateAccessToken = (id) =>
   });
 
 const generateNewAccessToken = async (req, res) => {
-  const { refreshToken } = req.body;
+  const { cookies } = req;
+  const refreshToken = cookies.jwt;
   if (!refreshToken) {
     return res.status(401).json({
       status: 'failed',

@@ -6,6 +6,7 @@ const dotenv = require('dotenv');
 const cookieParser = require('cookie-parser');
 const notesRouter = require('./routes/notesRoutes');
 const usersRouter = require('./routes/usersRoutes');
+const { authenticateToken } = require('./controllers/authController');
 
 dotenv.config({
   path: './config.env',
@@ -39,8 +40,9 @@ async function main() {
 
 main();
 
-app.use('/api/v1/notes', notesRouter);
 app.use('/api/v1/users', usersRouter);
+app.use(authenticateToken);
+app.use('/api/v1/notes', notesRouter);
 
 const port = process.env.PORT || 8000;
 app.listen(port, () => {

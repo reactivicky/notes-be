@@ -8,6 +8,7 @@ const getAllNotes = async (req, res) => {
     page = 1,
     select = '',
   } = req.query;
+  const { userId } = req;
   const fields = select.split(',').join(' ');
   const sortBy = sort.split(',').join(' ');
   const skip = (page - 1) * limit;
@@ -18,6 +19,7 @@ const getAllNotes = async (req, res) => {
         { name: { $in: [new RegExp(text, 'i')] } },
         { description: { $in: [new RegExp(text, 'i')] } },
       ],
+      user: userId,
     })
       .select(fields)
       .sort(sortBy)
@@ -41,11 +43,12 @@ const getAllNotes = async (req, res) => {
 
 const createNote = async (req, res) => {
   try {
-    const { name, description, authorId } = req.body;
+    const { name, description } = req.body;
+    const { userId } = req;
     const newNote = await Note.create({
       name,
       description,
-      author: authorId,
+      author: userId,
     });
     res.status(201).json({
       status: 'success',

@@ -56,6 +56,7 @@ const authenticateToken = async (req, res, next) => {
         message: 'Unauthorized',
       });
     }
+    req.userId = id;
   } catch (e) {
     return res.status(403).json({
       status: 'failed',

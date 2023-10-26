@@ -19,7 +19,7 @@ const getAllNotes = async (req, res) => {
         { name: { $in: [new RegExp(text, 'i')] } },
         { description: { $in: [new RegExp(text, 'i')] } },
       ],
-      user: userId,
+      author: userId,
     })
       .select(fields)
       .sort(sortBy)
@@ -66,8 +66,15 @@ const createNote = async (req, res) => {
 
 const getNote = async (req, res) => {
   const { id } = req.params;
+  const { userId } = req;
   try {
-    const note = await Note.findById(id);
+    const note = await Note.findOne({ _id: id, author: userId });
+    if (!note) {
+      return res.status(404).json({
+        status: 'failed',
+        message: 'Something went wrong',
+      });
+    }
     res.status(200).json({
       status: 'success',
       data: {
@@ -84,11 +91,22 @@ const getNote = async (req, res) => {
 
 const updateNote = async (req, res) => {
   const { id } = req.params;
+  const { userId } = req;
   try {
-    const note = await Note.findByIdAndUpdate(id, req.body, {
-      new: true,
-      runValidators: true,
-    });
+    const note = await Note.findOneAndUpdate(
+      { _id: id, author: userId },
+      req.body,
+      {
+        new: true,
+        runValidators: true,
+      },
+    );
+    if (!note) {
+      return res.status(404).json({
+        status: 'failed',
+        message: 'Something went wrong',
+      });
+    }
     res.status(200).json({
       status: 'success',
       data: {
@@ -105,8 +123,18 @@ const updateNote = async (req, res) => {
 
 const deleteNote = async (req, res) => {
   const { id } = req.params;
+  const { userId } = req;
   try {
-    await Note.findByIdAndDelete(id);
+    const deletedNote = await Note.findOneAndDelete({
+      _id: id,
+      author: userId,
+    });
+    if (!deletedNote) {
+      return res.status(404).json({
+        status: 'failed',
+        message: 'Something went wrong',
+      });
+    }
     res.status(204).json({
       status: 'success',
       data: null,

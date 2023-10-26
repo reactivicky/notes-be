@@ -154,9 +154,12 @@ const loginUser = async (req, res) => {
   }
 };
 
+const logoutUser = async (req, res) => {};
+
 module.exports = {
   loginUser,
   authenticateToken,
   createUser,
   generateNewAccessToken,
+  logoutUser,
 };

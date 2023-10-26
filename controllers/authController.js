@@ -69,6 +69,15 @@ const authenticateToken = async (req, res, next) => {
 const createUser = async (req, res) => {
   try {
     const { username, password } = req.body;
+
+    const duplicateUser = await User.findOne({ username });
+    if (duplicateUser) {
+      return res.status(409).json({
+        status: 'failed',
+        message: `User with username ${username} already exists`,
+      });
+    }
+
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const newUser = await User.create({

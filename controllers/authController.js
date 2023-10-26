@@ -16,7 +16,7 @@ const generateNewAccessToken = async (req, res) => {
       message: 'Unauthorized',
     });
   }
-  const user = await User.find({ refreshToken });
+  const user = await User.findOne({ refreshToken });
   if (!user) {
     return res.status(403).json({
       status: 'failed',
@@ -132,6 +132,7 @@ const loginUser = async (req, res) => {
           expiresIn: '1d',
         },
       );
+      await User.findByIdAndUpdate(user._id, { refreshToken });
       res.cookie('jwt', refreshToken, {
         httpOnly: true,
         maxAge: 24 * 60 * 60 * 1000,
@@ -154,7 +155,28 @@ const loginUser = async (req, res) => {
   }
 };
 
-const logoutUser = async (req, res) => {};
+const logoutUser = async (req, res) => {
+  const { cookies } = req;
+  const refreshToken = cookies.jwt;
+  if (!refreshToken) {
+    return res.sendStatus(204);
+  }
+  const user = await User.findOne({ refreshToken });
+  if (!user) {
+    res.clearCookie('jwt', { httpOnly: true, maxAge: 24 * 60 * 60 * 1000 });
+    return res.sendStatus(204);
+  }
+  await User.findByIdAndUpdate(
+    user._id,
+    { refreshToken: '' },
+    {
+      new: true,
+      runValidators: true,
+    },
+  );
+  res.clearCookie('jwt', { httpOnly: true, maxAge: 24 * 60 * 60 * 1000 }); // add secure: true in production to make it work with https only
+  res.sendStatus(204);
+};
 
 module.exports = {
   loginUser,
